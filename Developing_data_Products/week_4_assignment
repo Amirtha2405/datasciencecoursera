@@ -1,0 +1,71 @@
+---
+title: "Developing Data Products - Week 4 Assignment"
+author: "NK"
+date: "August 1, 2020"
+output: ioslides_presentation
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+## Reproducible Pitch
+
+For this assignment I have created a shiny app and a presentation for reproducible results. The link to the app is https://nikikou.shinyapps.io/Coursera-Assignment/ and the code can be found at GitHub (https://github.com/NikiKou/Developing-Data-Products/). The app shows the relationship between miles per gallon (mpg) and variables like cylinders, horsepower, transmission (auto or manual), gears etc. 
+
+## Introduction
+
+The data set that is loaded is mtcars.
+
+```{r, comment=""}
+head(mtcars)
+```
+
+## ui.R code
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+library(shiny)
+shinyUI(fluidPage(
+  titlePanel("mtcar Dataset - Miles per Gallon (mpg)"),
+  
+  sidebarPanel(
+    
+    selectInput("variable", "Variable:", 
+                c("Cylinders" = "cyl",
+                  "Transmission" = "am",
+                  "Gears" = "gear",
+                  "Horsepower"="hp"))
+  ),
+  
+  mainPanel(
+    # Output: Formatted text for caption ----
+    h3(textOutput("caption")),
+    
+    # Output: Plot of the requested variable against mpg ----
+    plotOutput("mpgPlot")
+  )
+))
+```
+
+
+## server.R code
+
+```{r echo=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+library(shiny)
+library(plotly)
+carData <- mtcars
+carData$am <- factor(carData$am, labels = c("Automatic", "Manual"))
+shinyServer(function(input, output) {
+  
+  formulaText <- reactive({
+    paste("mpg vs ", input$variable)
+  })
+  
+  output$caption <- renderText({
+    formulaText()
+  })
+  output$mpgPlot <- renderPlot({
+    ggplot(carData, aes_string(y=input$variable, x="mpg")) + geom_point(colour="red",size=4,alpha=0.5)
+  })
+  
+})
